@@ -7,9 +7,18 @@ import {
 import { useAuth } from '../store.jsx';
 
 const PAGE_TITLES = {
-  dashboard: 'Dashboard', query: 'Query Generator', aggregations: 'Aggregations',
-  collections: 'Collections', ops: 'MongoDB Ops', history: 'Query History',
-  indexes: 'Indexes', analytics: 'Analytics', settings: 'Settings', profile: 'Profile',
+  dashboard:      'Dashboard',
+  query:          'Query Generator',
+  'ai-engine':    'AI Engine',
+  'doc-analysis': 'Document Analysis',
+  aggregations:   'Aggregations',
+  collections:    'Collections',
+  ops:            'MongoDB Ops',
+  history:        'Query History',
+  indexes:        'Indexes',
+  analytics:      'Analytics',
+  settings:       'Settings',
+  profile:        'Profile',
 };
 
 const NOTIFICATIONS = [

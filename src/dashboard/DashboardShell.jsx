@@ -5,6 +5,8 @@ import TopNav from './components/TopNav.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AnalyticsPage from './pages/AnalyticsPage.jsx';
 import { ProfilePage, SettingsPage } from './pages/ProfileSettings.jsx';
+import DocumentAnalysisPage from './pages/DocumentAnalysisPage.jsx';
+import AIEnginePage from './pages/AIEnginePage.jsx';
 import {
   QueryHistoryPage, CollectionsPage, QueryGeneratorPage,
   AggregationsPage, IndexesPage, MongoOpsPage,
@@ -13,6 +15,8 @@ import {
 const PAGES = {
   dashboard:    DashboardPage,
   query:        QueryGeneratorPage,
+  'ai-engine':  AIEnginePage,
+  'doc-analysis': DocumentAnalysisPage,
   aggregations: AggregationsPage,
   collections:  CollectionsPage,
   ops:          MongoOpsPage,
@@ -32,9 +36,7 @@ export default function DashboardShell({ onLogout }) {
     if (mainRef.current) mainRef.current.scrollTop = 0;
   }, [activePage]);
 
-  const navigate = (page) => {
-    setActivePage(page);
-  };
+  const navigate = (page) => setActivePage(page);
 
   const PageComponent = PAGES[activePage] || DashboardPage;
 
@@ -46,7 +48,7 @@ export default function DashboardShell({ onLogout }) {
         <TopNav onLogout={onLogout} activePage={activePage} setActivePage={navigate} />
 
         <main ref={mainRef} className="flex-1 overflow-y-auto dash-scroll p-6">
-          {/* Ambient decoration — pointer-events none so they never block clicks */}
+          {/* Ambient decoration */}
           <div className="fixed inset-0 grid-overlay opacity-10 pointer-events-none" />
           <div className="fixed top-0 right-0 w-[600px] h-[400px] rounded-full bg-blue-electric/5 blur-[120px] pointer-events-none" />
           <div className="fixed bottom-0 left-64 w-[400px] h-[300px] rounded-full bg-cyan-glow/4 blur-[100px] pointer-events-none" />
