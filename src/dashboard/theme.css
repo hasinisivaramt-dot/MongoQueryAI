@@ -206,3 +206,151 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
 }
+/* ── Mobile responsive additions ── append this to the bottom of theme.css ── */
+
+/* Prevent horizontal overflow on mobile */
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+
+/* Mobile touch targets — minimum 44px */
+@media (max-width: 1024px) {
+  .dash-nav-item { min-height: 44px; }
+  button { min-height: 36px; }
+}
+
+/* Sidebar overlay scrolling fix */
+body.menu-open { overflow: hidden; }
+
+/* Mobile-friendly table overflow */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS input zoom (font-size must be >= 16px on focus) */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Mobile padding adjustments */
+@media (max-width: 640px) {
+  .dash-card { border-radius: 1rem; }
+  .glass    { border-radius: 1rem; }
+}
+
+/* Remove horizontal scroll on stat cards on small screens */
+@media (max-width: 480px) {
+  .stat-card-border { min-width: 0; }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding: max(0px)) {
+  .mobile-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Improve tap highlight */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Smooth momentum scrolling on iOS */
+.dash-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix flex gap in older Safari */
+.flex-gap-fallback > * + * { margin-left: 0.5rem; }
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #00f5ff;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,245,255,0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #00f5ff;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px rgba(0,245,255,0.5);
+}
+
+/* Select dropdown styling */
+select option {
+  background: #020817;
+  color: #e2e8f0;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid rgba(0,245,255,0.5);
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Blob URL cleanup — applied globally */
+.download-btn { cursor: pointer; }
+
+/* Mobile stat cards — ensure they wrap correctly */
+@media (max-width: 640px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* TopNav mobile hiding */
+@media (max-width: 1024px) {
+  .desktop-only { display: none !important; }
+}
+
+@media (min-width: 1024px) {
+  .mobile-only { display: none !important; }
+}
+
+/* Chat input area — prevent iOS keyboard pushing layout */
+@media (max-width: 768px) {
+  .chat-input-area {
+    position: sticky;
+    bottom: 0;
+    background: rgba(2, 8, 23, 0.95);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Word break for long mongo queries on mobile */
+pre, code {
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Better scrollbar on mobile Chrome */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,245,255,0.12); border-radius: 2px; }
