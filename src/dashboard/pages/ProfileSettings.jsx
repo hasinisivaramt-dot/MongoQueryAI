@@ -770,7 +770,7 @@ export function SettingsPage() {
                   <div>
                     <label className="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1.5 block">Session Timeout</label>
                     <select className="dash-input w-full px-4 py-3 rounded-xl text-sm bg-navy-800/80">
-                      {['30 minutes', '1 hour', '4 hours', '8 hours', 'Never'].map(o => (
+                      {['15 minutes', '30 minutes', '1 hour', '6 hours', '12 hours', '24 hours'].map(o => (
                         <option key={o}>{o}</option>
                       ))}
                     </select>
