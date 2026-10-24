@@ -159,8 +159,10 @@ export default function TopNav({ onLogout, activePage, setActivePage }) {
               onClick={() => { setShowProfile(s => !s); setShowNotifs(false); }}
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl glass border border-white/8 hover:border-cyan-glow/20 transition-all"
             >
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-electric to-cyan-glow flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                {user?.avatar || 'U'}
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-electric to-cyan-glow flex items-center justify-center text-white font-bold text-xs flex-shrink-0 overflow-hidden">
+                {user?.picture
+                  ? <img src={user.picture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  : (user?.avatar || 'U')}
               </div>
               <div className="hidden sm:block text-left">
                 <p className="font-body text-xs font-medium text-white leading-tight truncate max-w-[90px]">

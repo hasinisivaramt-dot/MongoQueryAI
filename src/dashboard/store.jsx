@@ -93,6 +93,16 @@ export function inferWorkspace(files, connectionString) {
   };
 }
 
+// Clears cached profile/settings forms so one account's name, email, role, etc.
+// never leak into the next account that signs in during the same browser session.
+function resetUserCaches() {
+  try {
+    Object.keys(sessionStorage)
+      .filter(k => k === 'mqai_profile_form' || k.startsWith('mqai_settings_'))
+      .forEach(k => sessionStorage.removeItem(k));
+  } catch {}
+}
+
 // ── Auth Provider ─────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const [user, setUser]           = useState(null);
@@ -108,6 +118,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (email, password) => {
+    resetUserCaches();
     const userData = {
       id: 'usr_' + Math.random().toString(36).slice(2, 9),
       name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
@@ -123,9 +134,31 @@ export function AuthProvider({ children }) {
   };
 
   const signup = (name, email, password) => {
+    resetUserCaches();
     const userData = {
       id: 'usr_' + Math.random().toString(36).slice(2, 9),
       name, email, plan: 'Starter', avatar: name[0].toUpperCase(),
+      apiKey: 'mqai_' + Math.random().toString(36).slice(2, 18),
+      createdAt: new Date().toISOString(),
+      queriesUsed: 0, queriesLimit: 500,
+      connected: null, setupDone: false,
+    };
+    setUser(userData);
+    sessionStorage.setItem('mqai_user', JSON.stringify(userData));
+    return userData;
+  };
+
+  // Sign in / sign up with a Google profile (see src/auth/google.js)
+  const loginWithGoogle = (profile) => {
+    resetUserCaches();
+    const userData = {
+      id: 'google_' + profile.sub,
+      name: profile.name,
+      email: profile.email,
+      picture: profile.picture,
+      provider: 'google',
+      plan: 'Starter',
+      avatar: (profile.name || profile.email || 'U')[0].toUpperCase(),
       apiKey: 'mqai_' + Math.random().toString(36).slice(2, 18),
       createdAt: new Date().toISOString(),
       queriesUsed: 0, queriesLimit: 500,
@@ -153,7 +186,18 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem('mqai_workspace', JSON.stringify(ws));
   };
 
+  // Merge changes (e.g. a new profile photo) into the signed-in user
+  const updateUser = (patch) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...patch };
+      try { sessionStorage.setItem('mqai_user', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  };
+
   const logout = () => {
+    resetUserCaches();
     setUser(null);
     setWorkspace(null);
     sessionStorage.removeItem('mqai_user');
@@ -161,7 +205,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, saveSetupData, workspace }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, updateUser, logout, saveSetupData, workspace }}>
       {children}
     </AuthContext.Provider>
   );

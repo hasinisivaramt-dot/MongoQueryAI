@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Shield, Activity, Key, Copy, Check, Edit3, Save, X,
   LogOut, Trash2, Eye, EyeOff, Bell, Zap,
   Database, Sliders, Lock, RefreshCw,
   AlertCircle, CheckCircle2, Clock, TrendingUp, FileText,
-  Palette, Mail, Smartphone, Monitor, Moon,
+  Palette, Mail, Smartphone, Monitor, Moon, Camera, Upload,
 } from 'lucide-react';
 import { useAuth } from '../store.jsx';
 
@@ -86,7 +86,31 @@ const ACTIVITY = [
 
 // ── PROFILE PAGE ──────────────────────────────────────────────────────────────
 export function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, workspace, updateUser } = useAuth();
+  const fileRef = useRef(null);
+
+  // Resize to 256x256 (cover-crop) and store as a small JPEG data URL
+  const handlePhoto = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showToast('Please choose an image file', 'error'); return; }
+    if (file.size > 8 * 1024 * 1024) { showToast('Image must be under 8 MB', 'error'); return; }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const size = 256, c = document.createElement('canvas');
+      c.width = c.height = size;
+      const side = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      updateUser({ picture: c.toDataURL('image/jpeg', 0.88) });
+      showToast('Profile photo updated');
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); showToast('Could not read that image', 'error'); };
+    img.src = url;
+  };
+  const removePhoto = () => { updateUser({ picture: null }); showToast('Profile photo removed'); };
   const { show: showToast, el: toastEl } = useToast();
   const [tab, setTab] = useState('overview');
   const [editing, setEditing] = useState(false);
@@ -95,8 +119,8 @@ export function ProfilePage() {
   const [form, setForm] = usePersistedState('mqai_profile_form', {
     name:  user?.name  || '',
     email: user?.email || '',
-    role:  'Senior Engineer',
-    bio:   'Building data-driven applications with MongoDB and AI.',
+    role:  user?.provider === 'google' ? '' : 'Senior Engineer',
+    bio:   user?.provider === 'google' ? '' : 'Building data-driven applications with MongoDB and AI.',
   });
 
   const tabs = [
@@ -112,11 +136,12 @@ export function ProfilePage() {
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
+  const isGoogle = user?.provider === 'google';
   const STATS = [
-    { label: 'Total Queries',  value: user?.queriesUsed?.toLocaleString() || '1,247', icon: Zap,          color: '#00f5ff' },
-    { label: 'Success Rate',   value: '98.4%',                                         icon: CheckCircle2, color: '#22c55e' },
-    { label: 'Queries/Month',  value: '412',                                            icon: TrendingUp,   color: '#4d9eff' },
-    { label: 'Collections',    value: '24',                                             icon: Database,     color: '#a855f7' },
+    { label: 'Total Queries',  value: (user?.queriesUsed ?? 0).toLocaleString(),                         icon: Zap,          color: '#00f5ff' },
+    { label: 'Success Rate',   value: isGoogle || !user?.queriesUsed ? '—' : '98.4%',                   icon: CheckCircle2, color: '#22c55e' },
+    { label: 'Queries/Month',  value: isGoogle ? (user?.queriesUsed ?? 0).toLocaleString() : '412',      icon: TrendingUp,   color: '#4d9eff' },
+    { label: 'Collections',    value: isGoogle ? String(workspace?.collections?.length ?? 0) : '24',     icon: Database,     color: '#a855f7' },
   ];
 
   return (
@@ -126,11 +151,21 @@ export function ProfilePage() {
       {/* Profile hero */}
       <div className="dash-card rounded-2xl p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
-          <div className="relative flex-shrink-0 self-start">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-electric to-cyan-glow flex items-center justify-center text-white font-display font-black text-2xl sm:text-3xl shadow-xl shadow-blue-electric/30">
-              {(form.name?.[0] || 'U').toUpperCase()}
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-green-400 border-2 border-navy-950" />
+          <div className="relative flex-shrink-0 self-start group">
+            <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+            <button type="button" onClick={() => fileRef.current?.click()} title="Change photo"
+              className="block w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-electric to-cyan-glow flex items-center justify-center text-white font-display font-black text-2xl sm:text-3xl shadow-xl shadow-blue-electric/30 overflow-hidden relative">
+              {user?.picture
+                ? <img src={user.picture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                : (form.name?.[0] || 'U').toUpperCase()}
+              <span className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera size={20} className="text-white" />
+              </span>
+            </button>
+            <button type="button" onClick={() => fileRef.current?.click()} title="Change photo"
+              className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-navy-900 border border-cyan-glow/40 flex items-center justify-center text-cyan-glow hover:bg-cyan-glow/20 transition-colors">
+              <Camera size={12} />
+            </button>
           </div>
 
           <div className="flex-1 min-w-0">
@@ -153,6 +188,18 @@ export function ProfilePage() {
                   <textarea className="dash-input w-full px-3 py-2 rounded-xl text-sm resize-none" rows={2}
                     value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} />
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => fileRef.current?.click()}
+                    className="btn-outline px-3 py-1.5 rounded-xl text-xs font-body flex items-center gap-2">
+                    <Upload size={12} />{user?.picture ? 'Change photo' : 'Upload photo'}
+                  </button>
+                  {user?.picture && (
+                    <button type="button" onClick={removePhoto}
+                      className="px-3 py-1.5 rounded-xl text-xs font-body flex items-center gap-2 text-slate-400 hover:text-red-400 border border-white/10 hover:border-red-400/40 transition-colors">
+                      <Trash2 size={12} />Remove
+                    </button>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button onClick={() => { setEditing(false); showToast('Profile saved'); }}
                     className="btn-primary px-4 py-2 rounded-xl text-xs font-body flex items-center gap-2">
@@ -170,9 +217,9 @@ export function ProfilePage() {
                   <h2 className="font-display font-black text-xl sm:text-2xl text-white">{form.name}</h2>
                   <span className="badge-info px-2.5 py-0.5 rounded-lg font-mono text-[10px]">{user?.plan} Plan</span>
                 </div>
-                <p className="font-mono text-sm text-slate-500 mb-1">{form.role}</p>
+                <p className="font-mono text-sm text-slate-500 mb-1">{form.role || 'Add your role'}</p>
                 <p className="font-body text-sm text-slate-400 mb-1">{user?.email}</p>
-                <p className="font-body text-sm text-slate-500 italic">{form.bio}</p>
+                <p className="font-body text-sm text-slate-500 italic">{form.bio || 'Add a short bio — click Edit.'}</p>
               </>
             )}
           </div>
